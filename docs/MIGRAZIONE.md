@@ -1,6 +1,6 @@
 # Migrazione di Lizmap dal server Faunalia a dhgeo
 
-Fino a ottobre 2026 Faunalia (Ulisse Cavallini) ospitava Lizmap su `webparc.it` e Filebrowser su `webparc.it/files/`. Il 27/10/2026 ha consegnato l'export `unica-lizmap_export_20261027.tar.gz` (348 MB). Il nuovo indirizzo è `lizmap.dh.unica.it`, su dhgeo dietro il reverse proxy del Centro.
+Fino a ottobre 2026 Faunalia ospitava Lizmap su `webparc.it` e Filebrowser su `webparc.it/files/`. Il 27/10/2026 ha consegnato l'export `unica-lizmap_export_20261027.tar.gz` (348 MB). Il nuovo indirizzo è `lizmap.dh.unica.it`, su dhgeo dietro il reverse proxy del Centro.
 
 Il piano complessivo, che comprende Mergin Maps, la scelta della VM, il DNS e il proxy, sta nella cartella di lavoro `mergin-lizmap/PIANO-MIGRAZIONE.md`. Qui c'è la parte che riguarda Lizmap.
 
@@ -63,11 +63,11 @@ Verifica dal proprio PC con un tunnel: `ssh -L 8084:127.0.0.1:8084 -L 8087:127.0
 
 ### Fase F: firewall
 
-Docker riscrive la porta di destinazione prima della catena `DOCKER-USER`, quindi si filtra sulla porta originale con `conntrack`. Ammessi solo il proxy e la VPN:
+Docker riscrive la porta di destinazione prima della catena `DOCKER-USER`, quindi si filtra sulla porta originale con `conntrack`. Ammessi solo il proxy e la VPN d'ateneo (sottorete da prendere dalla documentazione interna, non dal repository):
 
 ```bash
 sudo iptables -I DOCKER-USER 1 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -s 90.147.144.144 -j RETURN
-sudo iptables -I DOCKER-USER 2 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -s 10.5.100.0/24 -j RETURN
+sudo iptables -I DOCKER-USER 2 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -s <SOTTORETE_VPN> -j RETURN
 sudo iptables -I DOCKER-USER 3 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -j DROP
 ```
 
