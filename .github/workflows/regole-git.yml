@@ -1,7 +1,7 @@
 # Regole del workflow git del DH, controllate su GitHub.
-# L'organizzazione è sul piano Free: per i repository privati la protezione di main non è
-# disponibile, quindi questo workflow non impedisce i push diretti ma li segnala con un errore
-# (e una mail di notifica). In locale lo stesso controllo lo fa .githooks/pre-commit.
+# main è protetto (repository pubblico): si arriva solo da PR, e il job «regole» è un check
+# obbligatorio. Il controllo dei push su main resta come rete di sicurezza se la protezione
+# venisse tolta. In locale gli stessi controlli li fa .githooks/pre-commit.
 name: Regole del workflow
 
 on:
