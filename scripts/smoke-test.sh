@@ -28,8 +28,10 @@ echo "QGIS Server:"
 caps=$(docker compose exec -T lizmap php -r '
   $u = "http://map:8080/ows/?MAP=" . rawurlencode($argv[1]) . "&SERVICE=WMS&REQUEST=GetCapabilities";
   echo @file_get_contents($u);' "$PROGETTO" 2>/dev/null)
-if echo "$caps" | grep -q "<WMS_Capabilities"; then
-  ok "GetCapabilities di $PROGETTO ($(echo "$caps" | grep -c '<Layer') layer)"
+# confronto diretto sulla stringa: con pipefail, `echo | grep -q` su una risposta grande
+# può fallire per SIGPIPE anche quando il tag c'è
+if [[ "$caps" == *"<WMS_Capabilities"* ]]; then
+  ok "GetCapabilities di $PROGETTO ($(grep -c '<Layer' <<< "$caps") layer)"
 else
   ko "GetCapabilities di $PROGETTO non valido"
 fi

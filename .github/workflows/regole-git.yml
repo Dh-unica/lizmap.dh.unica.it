@@ -32,8 +32,11 @@ jobs:
 
       - name: Nome del branch con prefisso convenzionale
         if: github.event_name == 'pull_request'
+        env:
+          # il nome del branch lo sceglie chi apre la PR: passa da una variabile, mai interpolato nello script
+          BRANCH: ${{ github.head_ref }}
         run: |
-          b="${{ github.head_ref }}"
+          b="$BRANCH"
           if ! echo "$b" | grep -qE '^(feat|fix|docs|chore|refactor|test|perf|ci)/'; then
             echo "::error::Il branch '$b' non usa un prefisso convenzionale (feat/, fix/, docs/, chore/, refactor/)."
             exit 1
