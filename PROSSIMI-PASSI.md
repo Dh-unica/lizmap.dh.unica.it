@@ -11,6 +11,8 @@ Stato al 1/11/2026. Lo stack gira su dhgeo con le porte solo su 127.0.0.1, in at
 - [x] Repository clonato su dhgeo con deploy key in sola lettura (`~/.ssh/deploy_lizmap`, alias `github.com-lizmap`)
 - [x] Ripristino dall'export e avvio: `scripts/smoke-test.sh` tutto OK (GetCapabilities di PARC_WEB con 22 layer)
 - [x] Accesso riservato verificato: da anonimo il WMS di `parcwebgis` dà eccezione e la mappa rimanda al login
+- [x] Backup provato: `scripts/backup.sh` (341 MB, SQLite coerenti, 4 utenti)
+- [x] Lizmap 3.9.11 → 3.9.12 per PHP2Shell (PHP 8.3.29 → 8.3.36)
 
 ## Da fare
 
@@ -25,5 +27,4 @@ Stato al 1/11/2026. Lo stack gira su dhgeo con le porte solo su 127.0.0.1, in at
 ## Dopo la messa in servizio
 
 - [ ] Redis 5 → 7 (solo cache, rischio minimo)
-- [ ] Ultima Lizmap 3.9.x
 - [ ] Redirect da `webparc.it` a `lizmap.dh.unica.it`, se il DNS di `webparc.it` è disponibile

@@ -25,6 +25,7 @@ I progetti sono salvati con QGIS 3.44.7 e 3.44.8 e usano solo GeoPackage con per
 3. **Porte.** Nel compose originale le porte erano commentate. Ora sono configurabili da `.env`: si parte da `127.0.0.1` e si passa all'IP della VM solo con il firewall attivo.
 4. **Proprietari dei file.** L'archivio registra il proprietario `debian` (uid 1000). Si estrae con `--numeric-owner`: su dhgeo l'uid 1000 è l'utente `dhgeo`, lo stesso con cui girano i container.
 5. **URL esterno di Filebrowser.** Da `https://webparc.it/files` a `https://lizmap.dh.unica.it/files`.
+6. **PHP vulnerabile.** L'immagine 3.9.11 contiene PHP 8.3.29, esposto a PHP2Shell (CVE-2026-109618 e 109619, corretto dalla 8.3.36). Dopo il ripristino identico e il primo smoke test, il 1/11/2026 Lizmap è passato alla 3.9.12 (PHP 8.3.36) prima di essere pubblicato.
 
 ## Procedura
 

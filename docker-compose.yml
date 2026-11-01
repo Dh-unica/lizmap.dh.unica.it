@@ -9,8 +9,9 @@ x-logging: &logging
 
 services:
   lizmap:
-    # versione installata sul server Faunalia (var/lizmap-config/installer.ini.php)
-    image: 3liz/lizmap-web-client:3.9.11
+    # 3.9.12 (23/10/2026): contiene PHP 8.3.36, corretto per PHP2Shell (CVE-2026-109618/109619).
+    # Faunalia usava la 3.9.11, con PHP 8.3.29.
+    image: 3liz/lizmap-web-client:3.9.12
     container_name: unica-lizmap
     environment:
       LIZMAP_CACHEREDISDB: '1'
