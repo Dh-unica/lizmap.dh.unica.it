@@ -41,7 +41,7 @@ codice=$(curl -s -o /dev/null -w '%{http_code}' "http://$FILES/files/")
 case "$codice" in 200|302) ok "Filebrowser http://$FILES/files/ -> $codice" ;; *) ko "Filebrowser http://$FILES/files/ -> $codice" ;; esac
 
 echo "Errori recenti nei log (ultimi 15 minuti):"
-n=$(docker compose logs --since 15m lizmap map 2>&1 | grep -ciE 'error|fatal|exception' || true)
+n=$(docker compose logs --since 15m lizmap map 2>&1 | grep -iE 'error|fatal|exception' | grep -vc 'Log level set to' || true)
 [ "$n" -eq 0 ] && ok "nessuno" || ko "$n righe: docker compose logs --since 15m lizmap map"
 
 exit $esito
