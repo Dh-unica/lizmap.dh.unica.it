@@ -71,7 +71,7 @@ sudo iptables -I DOCKER-USER 2 -p tcp -m conntrack --ctorigdstport 8084:8087 --c
 sudo iptables -I DOCKER-USER 3 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -j DROP
 ```
 
-Per renderle persistenti serve `iptables-persistent` (da installare) oppure uno script richiamato all'avvio dopo Docker. La regola copre anche la 8086 di Mergin.
+Per renderle persistenti si usa un'unità systemd che le inserisce dopo `docker.service` (`After=docker.service`), in modo idempotente. Meglio non usare `iptables-persistent`, che salverebbe e ripristinerebbe anche le catene gestite da Docker. La regola copre anche la 8086 di Mergin.
 
 ## Verifiche di accettazione
 
