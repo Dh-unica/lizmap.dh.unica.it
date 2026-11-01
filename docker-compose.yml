@@ -1,0 +1,101 @@
+services:
+  lizmap:
+    image: 3liz/lizmap-web-client:3.9
+    container_name: unica-lizmap
+    environment:
+      LIZMAP_CACHEREDISDB: '1'
+      LIZMAP_CACHEREDISHOST: lizmap-redis
+      LIZMAP_CACHESTORAGETYPE: redis
+      LIZMAP_HOME: /srv/lizmap
+      LIZMAP_USER: 1000
+      LIZMAP_WMSSERVERURL: http://map:8080/ows/
+      LIZMAP_CONFIG_INCLUDE: /srv/etc
+      PGSERVICEFILE: /srv/etc/pg_service.conf
+      PGSPASSFILE: /srv/etc/pgpass.conf
+      LIZMAP_DEBUGMODE: 'INFO'
+    volumes:
+      - ./lizmap/instances:/srv/projects
+      - ./lizmap/var/lizmap-theme-config:/www/lizmap/var/lizmap-theme-config
+      - ./lizmap/var/lizmap-config:/www/lizmap/var/config
+      - ./lizmap/var/lizmap-db:/www/lizmap/var/db
+      - ./lizmap/www:/www/lizmap/www
+      - ./lizmap/var/lizmap-log:/www/lizmap/var/log
+      - ./lizmap/lizmap-modules:/www/lizmap/lizmap-modules/
+      - ./lizmap/etc:/srv/etc:ro
+    command:
+      - php-fpm
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    restart: unless-stopped
+
+  map:
+    image: 3liz/qgis-map-server:3.44
+    container_name: unica-lizmap-map
+    environment:
+      QGSRV_API_ENABLED_LIZMAP: 'yes'
+      QGSRV_CACHE_SIZE: '20'
+      QGSRV_CACHE_ROOTDIR: /srv/projects
+      QGSRV_USER: 1000:1000
+      QGSRV_LOGGING_LEVEL: ERROR
+      QGSRV_SERVER_WORKERS: 4
+      QGSRV_SERVER_PLUGINPATH: /srv/plugins
+      QGSRV_SERVER_RESTARTMON: /srv/.qgis-restart
+      PGSERVICEFILE: /srv/etc/pg_service.conf
+      PGSPASSFILE: /srv/etc/pgpass.conf
+      QGIS_OPTIONS_PATH: /srv/etc/qgis
+      QGIS_SERVER_LIZMAP_REVEAL_SETTINGS: 'yes'
+      QGIS_AUTH_DB_DIR_PATH: /srv/authdb
+      QGSRV_CACHE_STRICT_CHECK: 'no'
+    volumes:
+      - ./lizmap/instances:/srv/projects
+      - ./lizmap/etc:/srv/etc:ro
+      - ./lizmap/qgis-authdb:/srv/authdb
+      - ./lizmap/qgis-plugins:/srv/plugins
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    restart: unless-stopped
+
+  redis:
+    image: redis:5-alpine
+    container_name: unica-lizmap-redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    restart: unless-stopped
+
+  web:
+    image: nginx:alpine
+    container_name: unica-lizmap-web
+    volumes:
+      - ./lizmap/etc/nginx.conf:/etc/nginx/nginx.conf
+      - ./lizmap/www:/srv/lizmap/www
+    # ports:
+      # - 8084:80
+    depends_on:
+      - lizmap
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    restart: unless-stopped
+
+  filebrowser:
+    image: ghcr.io/gtsteffaniak/filebrowser:2-stable-slim
+    container_name: unica-filebrowser
+    volumes:
+      - ./lizmap/instances:/srv
+      - ./filebrowser_quantum:/home/filebrowser/data
+    user: 1000:1000
+    # ports:
+      # - 8087:80
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+    restart: unless-stopped
+

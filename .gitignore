@@ -1,0 +1,32 @@
+# segreti
+.env
+.env.*
+!.env.example
+
+# dati e stato di Lizmap: vivono solo sul server e nei backup
+lizmap/instances/
+lizmap/var/
+lizmap/www/
+lizmap/lizmap-modules/
+lizmap/qgis-authdb/
+lizmap/qgis-plugins/
+
+# Filebrowser: si versiona solo la configurazione
+filebrowser_quantum/*
+!filebrowser_quantum/config.yaml
+
+# backup, dump e archivi
+backup/
+*.sql
+*.sql.gz
+*.dump
+*.sqlite
+*.db
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# file di lavoro
+.playwright-cli/
+.playwright-mcp/
