@@ -162,6 +162,7 @@ scripts/backup.sh                         # backup in ./backup
 - Ogni branch si chiude con una Pull Request; dopo il merge il branch si cancella (impostazione automatica del repository).
 - I rilasci in produzione hanno un tag `prod-<data>`, per esempio `prod-2026-11-02`.
 - Dopo il clone, attivare i controlli locali: `git config core.hooksPath .githooks`. L'hook blocca i commit su `main` e l'ingresso di `.env`, dump, database e archivi.
+- Su GitHub il workflow [Regole del workflow](.github/workflows/regole-git.yml) controlla ogni PR (prefisso del branch, file vietati) e segnala in rosso i push su `main` che non arrivano da una PR. L'organizzazione è sul piano Free, che per i repository privati non offre la protezione dei branch: il blocco vero è l'hook locale.
 - Sul server il repository si aggiorna solo con `git pull` da `main`: lì non si fanno commit.
 
 ---
