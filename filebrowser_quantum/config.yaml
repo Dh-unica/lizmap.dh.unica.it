@@ -11,7 +11,7 @@ server:
         defaultEnabled: true
 http:
   baseURL: "/files/"
-  externalUrl: "https://webparc.it/files"
+  externalUrl: "https://lizmap.dh.unica.it/files"
   trustProxyHeaders: true
 frontend:
   name: "UniCA"
