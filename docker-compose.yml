@@ -1,6 +1,16 @@
+# Lizmap di lizmap.dh.unica.it (progetto PARC), su dhgeo 90.147.144.148.
+# Derivato dal compose consegnato da Faunalia il 27/10/2026: le differenze sono
+# versioni bloccate, alias di rete per Redis e porte configurabili da .env.
+
+x-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "50m"
+
 services:
   lizmap:
-    image: 3liz/lizmap-web-client:3.9
+    # versione installata sul server Faunalia (var/lizmap-config/installer.ini.php)
+    image: 3liz/lizmap-web-client:3.9.11
     container_name: unica-lizmap
     environment:
       LIZMAP_CACHEREDISDB: '1'
@@ -24,13 +34,11 @@ services:
       - ./lizmap/etc:/srv/etc:ro
     command:
       - php-fpm
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
+    logging: *logging
     restart: unless-stopped
 
   map:
+    # i progetti sono salvati con QGIS 3.44.7 e 3.44.8
     image: 3liz/qgis-map-server:3.44
     container_name: unica-lizmap-map
     environment:
@@ -53,35 +61,33 @@ services:
       - ./lizmap/etc:/srv/etc:ro
       - ./lizmap/qgis-authdb:/srv/authdb
       - ./lizmap/qgis-plugins:/srv/plugins
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
+    logging: *logging
     restart: unless-stopped
 
   redis:
     image: redis:5-alpine
     container_name: unica-lizmap-redis
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
+    networks:
+      default:
+        # Lizmap cerca la cache su "lizmap-redis" (env sopra e lizmapConfig.ini.php):
+        # nel compose originale il nome non era risolvibile
+        aliases:
+          - lizmap-redis
+    logging: *logging
     restart: unless-stopped
 
   web:
-    image: nginx:alpine
+    image: nginx:1.27-alpine
     container_name: unica-lizmap-web
     volumes:
-      - ./lizmap/etc/nginx.conf:/etc/nginx/nginx.conf
+      - ./lizmap/etc/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./lizmap/www:/srv/lizmap/www
-    # ports:
-      # - 8084:80
+    ports:
+      # 127.0.0.1 finché il firewall DOCKER-USER non è attivo, poi l'IP della VM (vedi .env.example)
+      - "${LIZMAP_WEB_PORT:-127.0.0.1:8084}:80"
     depends_on:
       - lizmap
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
+    logging: *logging
     restart: unless-stopped
 
   filebrowser:
@@ -91,11 +97,7 @@ services:
       - ./lizmap/instances:/srv
       - ./filebrowser_quantum:/home/filebrowser/data
     user: 1000:1000
-    # ports:
-      # - 8087:80
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
+    ports:
+      - "${FILEBROWSER_PORT:-127.0.0.1:8087}:80"
+    logging: *logging
     restart: unless-stopped
-
