@@ -5,7 +5,7 @@
 **Il WebGIS dei progetti di ricerca del Centro Interdipartimentale per l'Umanistica Digitale dell'Università di Cagliari**
 
 [![Sito](https://img.shields.io/badge/sito-lizmap.dh.unica.it-1f4e79)](https://lizmap.dh.unica.it/)
-[![Lizmap](https://img.shields.io/badge/Lizmap-3.9.11-e05a33)](https://www.lizmap.com/)
+[![Lizmap](https://img.shields.io/badge/Lizmap-3.9.12-e05a33)](https://www.lizmap.com/)
 [![QGIS Server](https://img.shields.io/badge/QGIS%20Server-3.44-589632?logo=qgis&logoColor=white)](https://qgis.org/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ed?logo=docker&logoColor=white)](docker-compose.yml)
 [![DH UNICA](https://img.shields.io/badge/ecosistema-DH%20UNICA-0b2545)](https://dh.unica.it/)
@@ -67,7 +67,7 @@ Mergin e Lizmap non si sincronizzano tra loro: i dati passano dal QGIS dei ricer
 
 | Componente | Immagine / versione | Ruolo |
 |---|---|---|
-| **Lizmap Web Client** | `3liz/lizmap-web-client:3.9.11` | Applicazione web (PHP-FPM): utenti, permessi, interfaccia della mappa |
+| **Lizmap Web Client** | `3liz/lizmap-web-client:3.9.12` | Applicazione web (PHP-FPM): utenti, permessi, interfaccia della mappa |
 | **QGIS Server** | `3liz/qgis-map-server:3.44` | Disegna le mappe e serve WMS, WFS e WMTS; plugin `lizmap_server` e `wfsOutputExtension` |
 | **Nginx** | `nginx:1.27-alpine` | File statici e passaggio a PHP-FPM; è il punto d'ingresso dello stack |
 | **Redis** | `redis:5-alpine` | Cache delle tessere della mappa |
