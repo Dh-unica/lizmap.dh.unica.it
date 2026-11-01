@@ -1,0 +1,51 @@
+# Regole del workflow git del DH, controllate su GitHub.
+# L'organizzazione è sul piano Free: per i repository privati la protezione di main non è
+# disponibile, quindi questo workflow non impedisce i push diretti ma li segnala con un errore
+# (e una mail di notifica). In locale lo stesso controllo lo fa .githooks/pre-commit.
+name: Regole del workflow
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  regole:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Su main si arriva solo da una Pull Request
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" --jq 'length')
+          if [ "$n" -eq 0 ]; then
+            echo "::error::Il commit ${{ github.sha }} è stato pushato su main senza Pull Request."
+            exit 1
+          fi
+
+      - name: Nome del branch con prefisso convenzionale
+        if: github.event_name == 'pull_request'
+        run: |
+          b="${{ github.head_ref }}"
+          if ! echo "$b" | grep -qE '^(feat|fix|docs|chore|refactor|test|perf|ci)/'; then
+            echo "::error::Il branch '$b' non usa un prefisso convenzionale (feat/, fix/, docs/, chore/, refactor/)."
+            exit 1
+          fi
+
+      - name: Nessun segreto né dato tra i file versionati
+        run: |
+          vietati=$(git ls-files | grep -E \
+            '(^|/)\.env(\.|$)|(^|/)\.prod\.env$|\.(sql|sql\.gz|dump|sqlite|db|tar|tar\.gz|tgz|zip)$|^(mergin_db|projects|lizmap/instances|lizmap/var)/' \
+            | grep -vE '\.example$' || true)
+          if [ -n "$vietati" ]; then
+            echo "::error::File che non devono stare nel repository:"
+            echo "$vietati"
+            exit 1
+          fi

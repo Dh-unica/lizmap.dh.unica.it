@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Regole del workflow DH, verificate a ogni commit.
+# Si attiva una volta per clone con:  git config core.hooksPath .githooks
+#
+# 1. Niente commit su main: si lavora su un branch feat/, fix/, docs/, chore/, refactor/ e si apre una PR.
+# 2. Niente segreti né dati: .env, dump, database e archivi restano fuori dal repository.
+
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+  echo "Commit su '$branch' bloccato: crea un branch (es. git switch -c fix/descrizione) e apri una PR." >&2
+  exit 1
+fi
+
+vietati=$(git diff --cached --name-only --diff-filter=ACMR | grep -E \
+  '(^|/)\.env(\.|$)|(^|/)\.prod\.env$|\.(sql|sql\.gz|dump|sqlite|db|tar|tar\.gz|tgz|zip)$|^(mergin_db|projects|lizmap/instances|lizmap/var)/' \
+  | grep -vE '\.example$')
+if [ -n "$vietati" ]; then
+  echo "Commit bloccato: questi file non devono entrare nel repository (segreti o dati):" >&2
+  echo "$vietati" | sed 's/^/  /' >&2
+  exit 1
+fi
+
+if git diff --cached -U0 | grep -E '^\+' | grep -qiE "(password|secret|salt|token)[a-z_]*[[:space:]]*[=:][[:space:]]*[\"']?[A-Za-z0-9+/_-]{12,}[\"']?([[:space:]]+#.*)?[[:space:]]*$"; then
+  echo "Attenzione: il diff contiene quella che sembra una password o una chiave in chiaro." >&2
+  echo "Se è un falso positivo, ricontrolla e usa: git commit --no-verify" >&2
+  exit 1
+fi
