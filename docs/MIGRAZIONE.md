@@ -74,13 +74,15 @@ Docker scavalca `ufw`, attivo su dhgeo: il filtro sta nella catena `DOCKER-USER`
 
 Non c'è una regola per la VPN: l'amministrazione passa dal tunnel SSH.
 
-Le regole le carica [`scripts/firewall-dhgeo.sh`](../scripts/firewall-dhgeo.sh), in modo idempotente. L'unità [`systemd/firewall-dhgeo.service`](../systemd/firewall-dhgeo.service) lo lancia prima di `docker.service`, così al boot i container non pubblicano mai le porte senza filtro; Docker trova la catena pronta e accoda il suo `RETURN`. Non si usa `iptables-persistent`, che salverebbe e ripristinerebbe anche le catene gestite da Docker.
+Le regole le carica [`scripts/firewall-dhgeo.sh`](../scripts/firewall-dhgeo.sh), in modo idempotente e con un lock. Indirizzi e porte sono costanti nello script: per cambiarli si modifica il repository e si rilancia `installa`. L'unità [`systemd/firewall-dhgeo.service`](../systemd/firewall-dhgeo.service) lo lancia prima di `docker.service`, e Docker ne dipende (`RequiredBy`): se le regole non si caricano Docker non parte, così le porte non vengono mai pubblicate senza filtro. Docker trova la catena pronta e accoda il suo `RETURN`. Non si usa `iptables-persistent`, che salverebbe e ripristinerebbe anche le catene gestite da Docker.
 
 ```bash
 cd ~/lizmap.dh.unica.it && git pull
 sudo scripts/firewall-dhgeo.sh installa   # /usr/local/sbin/firewall-dhgeo e unità systemd, abilitata e avviata
-sudo firewall-dhgeo stato                 # le due regole in cima a DOCKER-USER, codice 0
+sudo firewall-dhgeo stato                 # codice 0: regole identiche alla configurazione, in cima, e FORWARD passa da DOCKER-USER
 ```
+
+L'unità non va fermata né riavviata con `systemctl`, perché fermerebbe anche Docker. Per ricaricare le regole si usa `sudo firewall-dhgeo applica`, per toglierle `sudo firewall-dhgeo rimuovi`.
 
 Solo dopo si aprono le porte: in `.env` `LIZMAP_WEB_PORT=90.147.144.148:8084` e `FILEBROWSER_PORT=90.147.144.148:8087`, nello stack Mergin `MERGIN_PORT=90.147.144.148:8086`, poi `docker compose up -d` nei due stack. Verifiche:
 

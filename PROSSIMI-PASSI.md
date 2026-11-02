@@ -15,7 +15,7 @@ Stato al 2/11/2026. Lo stack gira su dhgeo con le porte solo su 127.0.0.1. Il DN
 - [x] Lizmap 3.9.11 → 3.9.12 per PHP2Shell (PHP 8.3.29 → 8.3.36)
 - [x] DNS: `lizmap.dh.unica.it` è un CNAME di `dh.unica.it` (90.147.144.144), attivo dal 2/11/2026
 - [x] Credenziali amministrative di Lizmap e Filebrowser ricevute da Faunalia il 2/11/2026 (fuori dal repository)
-- [x] Firewall: `scripts/firewall-dhgeo.sh` e `systemd/firewall-dhgeo.service`, prove passate anche su dhgeo (iptables 1.6.1, in un namespace)
+- [x] Firewall: `scripts/firewall-dhgeo.sh` e `systemd/firewall-dhgeo.service`, prove passate anche su dhgeo (iptables 1.6.1, in un namespace); Docker dipende dall'unità
 
 ## Da fare
 
