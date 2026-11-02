@@ -19,7 +19,7 @@ Configurazione di produzione e strumenti di manutenzione di lizmap.dh.unica.it, 
 - Comandi vietati: `docker compose down -v`, `docker system prune`, `docker volume prune`, `rm` su `lizmap/instances` o `lizmap/var`, estrazioni di archivi con `tar` senza `--numeric-owner`.
 - I file in `lizmap/var/lizmap-config/` li scrive l'interfaccia di amministrazione di Lizmap: non si versionano e non si sovrascrivono a mano senza backup.
 - I progetti QGIS devono restare compatibili con QGIS Server 3.44: non aggiornare `qgis-map-server` di versione minore senza sentire chi cura i progetti.
-- Le porte 8084 e 8087 si aprono verso l'esterno solo con le regole `DOCKER-USER` attive (docs/MIGRAZIONE.md, fase F): Docker scavalca `ufw`.
+- Le porte 8084 e 8087 si spostano sull'IP di dhgeo solo con il firewall attivo (`sudo firewall-dhgeo stato` con codice 0; docs/MIGRAZIONE.md, fase F): Docker scavalca `ufw`. Le regole si cambiano in `scripts/firewall-dhgeo.sh`, con le prove di `tests/firewall-dhgeo.test.sh`.
 - Git: mai commit su `main`. Un branch per attività (`feat/`, `fix/`, `docs/`, `chore/`, `refactor/`), commit in italiano, poi PR, merge e cancellazione del branch. `main` è protetto su GitHub: si arriva solo da PR con il check «regole» verde. Tag `prod-<data>` per ogni rilascio in produzione. Hook locale: `git config core.hooksPath .githooks`.
 - Mai segreti né dati nel repo: `.env`, database SQLite, progetti e dump restano fuori (vedi `.gitignore`).
 - Su dhgeo il repository si aggiorna solo con `git pull` (deploy key in sola lettura): lì non si fanno commit.

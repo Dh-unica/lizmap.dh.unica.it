@@ -1,0 +1,27 @@
+# Prove dello script del firewall di dhgeo, in un namespace di rete del runner:
+# il firewall del runner non viene toccato.
+name: Firewall dhgeo
+
+on:
+  pull_request:
+    paths:
+      - scripts/firewall-dhgeo.sh
+      - systemd/firewall-dhgeo.service
+      - tests/firewall-dhgeo.test.sh
+      - .github/workflows/firewall.yml
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: shellcheck scripts/firewall-dhgeo.sh tests/firewall-dhgeo.test.sh
+
+      - name: Prove in un namespace di rete
+        # sui runner i namespace utente sono bloccati da AppArmor: si entra nel namespace da root
+        run: sudo tests/firewall-dhgeo.test.sh

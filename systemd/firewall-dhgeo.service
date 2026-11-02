@@ -1,0 +1,18 @@
+# Firewall delle porte Docker di dhgeo. Si installa con: sudo scripts/firewall-dhgeo.sh installa
+#
+# Docker dipende da questa unità (RequiredBy): se le regole non si caricano, Docker non parte e
+# le porte non vengono pubblicate senza filtro. Per lo stesso motivo non va fermata né riavviata
+# con systemctl, che fermerebbe anche Docker: per ricaricare le regole «sudo firewall-dhgeo
+# applica», per toglierle «sudo firewall-dhgeo rimuovi».
+[Unit]
+Description=Porte Docker 8084-8087 di dhgeo raggiungibili solo dal proxy dhwp (DOCKER-USER)
+Documentation=https://github.com/Dh-unica/lizmap.dh.unica.it/blob/main/docs/MIGRAZIONE.md
+Before=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/firewall-dhgeo applica
+
+[Install]
+RequiredBy=docker.service

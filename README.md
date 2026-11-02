@@ -90,7 +90,7 @@ flowchart LR
     QS -. basemap XYZ .-> EXT([OSM · OpenTopoMap · Esri])
 ```
 
-Lo stack gira su **dhgeo** (`90.147.144.148`), la VM GIS del Centro, insieme a Mergin Maps. Il TLS si ferma sul reverse proxy comune [`proxy.dh.unica`](https://github.com/caprowsky/proxy.dh.unica), con il certificato wildcard `*.dh.unica.it`. Le porte 8084 e 8087 di dhgeo accettano connessioni solo dal proxy e dalla VPN d'ateneo.
+Lo stack gira su **dhgeo** (`90.147.144.148`), la VM GIS del Centro, insieme a Mergin Maps. Il TLS si ferma sul reverse proxy comune [`proxy.dh.unica`](https://github.com/caprowsky/proxy.dh.unica), con il certificato wildcard `*.dh.unica.it`. Le porte 8084 e 8087 di dhgeo accettano connessioni solo dal proxy: le filtra `scripts/firewall-dhgeo.sh` nella catena `DOCKER-USER` (docs/MIGRAZIONE.md, fase F).
 
 I progetti usano solo GeoPackage con percorsi relativi, quindi non c'è un database geografico: basta la cartella `lizmap/instances`. Utenti, gruppi e permessi stanno in SQLite (`lizmap/var/lizmap-db/jauth.db`).
 
@@ -110,7 +110,10 @@ lizmap.dh.unica.it/
 ├── scripts/
 │   ├── ripristina-export.sh  ← ripristino di dati e stato dall'export Faunalia
 │   ├── smoke-test.sh         ← controlli rapidi dello stack (solo letture)
-│   └── backup.sh             ← backup di progetti, configurazione, utenti e Filebrowser
+│   ├── backup.sh             ← backup di progetti, configurazione, utenti e Filebrowser
+│   └── firewall-dhgeo.sh     ← firewall delle porte 8084–8087 di dhgeo: passa solo il proxy
+├── systemd/                  ← unità che carica il firewall prima di Docker
+├── tests/                    ← prove del firewall in un namespace di rete isolato
 ├── lizmap/etc/               ← configurazione drop-in montata in sola lettura (nginx, Lizmap, QGIS)
 ├── filebrowser_quantum/
 │   └── config.yaml           ← configurazione di Filebrowser
@@ -145,6 +148,7 @@ docker compose ps                         # stato dei servizi
 docker compose logs -f --tail=100 lizmap map
 scripts/smoke-test.sh                     # controlli rapidi
 scripts/backup.sh                         # backup in ./backup
+sudo firewall-dhgeo stato                 # regole del firewall in cima a DOCKER-USER
 ```
 
 **Pubblicare o aggiornare un progetto:** si caricano il `.qgs`, il `.qgs.cfg` generato dal plugin Lizmap di QGIS e i GeoPackage nella cartella del repository, da `https://lizmap.dh.unica.it/files/` oppure via SFTP come utente `dhgeo` (uid 1000, lo stesso dei container). I progetti vanno salvati con QGIS 3.44, la versione del server.

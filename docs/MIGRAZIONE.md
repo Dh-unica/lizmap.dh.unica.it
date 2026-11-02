@@ -57,21 +57,39 @@ Verifica dal proprio PC con un tunnel: `ssh -L 8084:127.0.0.1:8084 -L 8087:127.0
 
 ### Pubblicazione
 
-1. **DNS**: record A `lizmap.dh.unica.it` → `90.147.144.144`, con ticket a [helpdesk.unica.it](https://helpdesk.unica.it/servicePortal) (non c'è un wildcard DNS).
+1. **DNS**: `lizmap.dh.unica.it` è un CNAME di `dh.unica.it` (90.147.144.144), attivo dal 2/11/2026. Non c'è un wildcard DNS: ogni nome si chiede con un ticket a [helpdesk.unica.it](https://helpdesk.unica.it/servicePortal).
 2. **Proxy**: virtual host `lizmap_dhunica.conf` in `proxy.dh.unica`, con il certificato wildcard `*.dh.unica.it`: `/` verso `90.147.144.148:8084`, `/files/` verso `90.147.144.148:8087`.
-3. **Firewall e porte** (fase F): regole `DOCKER-USER`, poi in `.env` `LIZMAP_WEB_PORT=90.147.144.148:8084` e `FILEBROWSER_PORT=90.147.144.148:8087` e `docker compose up -d`.
+3. **Firewall e porte** (fase F): `sudo scripts/firewall-dhgeo.sh installa`, poi in `.env` `LIZMAP_WEB_PORT=90.147.144.148:8084` e `FILEBROWSER_PORT=90.147.144.148:8087` e `docker compose up -d`.
 
 ### Fase F: firewall
 
-Docker riscrive la porta di destinazione prima della catena `DOCKER-USER`, quindi si filtra sulla porta originale con `conntrack`. Ammessi solo il proxy e la VPN d'ateneo (sottorete da prendere dalla documentazione interna, non dal repository):
+dhwp (90.147.144.144) e dhgeo stanno nella stessa sottorete, 90.147.144.128/26, e si parlano direttamente senza passare dal firewall perimetrale dell'ateneo. Verso Internet è aperta solo la 443 di dhwp, quindi non serve un ticket al settore reti: basta il firewall di dhgeo.
 
-```bash
-sudo iptables -I DOCKER-USER 1 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -s 90.147.144.144 -j RETURN
-sudo iptables -I DOCKER-USER 2 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -s <SOTTORETE_VPN> -j RETURN
-sudo iptables -I DOCKER-USER 3 -p tcp -m conntrack --ctorigdstport 8084:8087 --ctdir ORIGINAL -j DROP
+Docker scavalca `ufw`, attivo su dhgeo: il filtro sta nella catena `DOCKER-USER`. Docker riscrive la destinazione (DNAT) prima di quella catena, quindi indirizzo e porta si confrontano con quelli originali tramite `conntrack`. Le regole sono due, marcate con il commento `firewall-dhgeo`, e coprono 8084–8087, quindi anche la 8086 di Mergin:
+
+```text
+-A DOCKER-USER -s 90.147.144.144/32 -p tcp -m conntrack --ctorigdst 90.147.144.148 --ctorigdstport 8084:8087 --ctdir ORIGINAL -m comment --comment firewall-dhgeo -j RETURN
+-A DOCKER-USER -p tcp -m conntrack --ctorigdst 90.147.144.148 --ctorigdstport 8084:8087 --ctdir ORIGINAL -m comment --comment firewall-dhgeo -j DROP
 ```
 
-Per renderle persistenti si usa un'unità systemd che le inserisce dopo `docker.service` (`After=docker.service`), in modo idempotente. Meglio non usare `iptables-persistent`, che salverebbe e ripristinerebbe anche le catene gestite da Docker. La regola copre anche la 8086 di Mergin.
+Non c'è una regola per la VPN: l'amministrazione passa dal tunnel SSH.
+
+Le regole le carica [`scripts/firewall-dhgeo.sh`](../scripts/firewall-dhgeo.sh), in modo idempotente e con un lock. Indirizzi e porte sono costanti nello script: per cambiarli si modifica il repository e si rilancia `installa`. L'unità [`systemd/firewall-dhgeo.service`](../systemd/firewall-dhgeo.service) lo lancia prima di `docker.service`, e Docker ne dipende (`RequiredBy`): se le regole non si caricano Docker non parte, così le porte non vengono mai pubblicate senza filtro. Docker trova la catena pronta e accoda il suo `RETURN`. Non si usa `iptables-persistent`, che salverebbe e ripristinerebbe anche le catene gestite da Docker.
+
+```bash
+cd ~/lizmap.dh.unica.it && git pull
+sudo scripts/firewall-dhgeo.sh installa   # /usr/local/sbin/firewall-dhgeo e unità systemd, abilitata e avviata
+sudo firewall-dhgeo stato                 # codice 0: regole identiche alla configurazione, in cima, e FORWARD passa da DOCKER-USER
+```
+
+L'unità non va fermata né riavviata con `systemctl`, perché fermerebbe anche Docker. Per ricaricare le regole si usa `sudo firewall-dhgeo applica`, per toglierle `sudo firewall-dhgeo rimuovi`.
+
+Solo dopo si aprono le porte: in `.env` `LIZMAP_WEB_PORT=90.147.144.148:8084` e `FILEBROWSER_PORT=90.147.144.148:8087`, nello stack Mergin `MERGIN_PORT=90.147.144.148:8086`, poi `docker compose up -d` nei due stack. Verifiche:
+
+- da dhwp `curl -sI http://90.147.144.148:8084/` e `curl -s http://90.147.144.148:8086/ping` rispondono;
+- da qualsiasi altra macchina, VPN compresa, le stesse richieste vanno in timeout.
+
+Lo script si prova senza toccare il firewall vero, in un namespace di rete isolato: `tests/firewall-dhgeo.test.sh`. Gira anche in CI a ogni PR che lo modifica.
 
 ## Verifiche di accettazione
 
