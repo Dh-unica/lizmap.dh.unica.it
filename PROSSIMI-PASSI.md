@@ -1,6 +1,6 @@
 # Prossimi passi
 
-Stato al 2/11/2026. Lo stack gira su dhgeo con le porte solo su 127.0.0.1. Il DNS è attivo: mancano firewall, porte e merge del proxy.
+Stato al 2/11/2026. **In servizio su https://lizmap.dh.unica.it** dal 2/11/2026, 14:47 UTC, dietro il proxy di dhwp; porte 8084 e 8087 sull'IP di dhgeo, filtrate dal firewall.
 
 ## Fatto
 
@@ -16,15 +16,14 @@ Stato al 2/11/2026. Lo stack gira su dhgeo con le porte solo su 127.0.0.1. Il DN
 - [x] DNS: `lizmap.dh.unica.it` è un CNAME di `dh.unica.it` (90.147.144.144), attivo dal 2/11/2026
 - [x] Credenziali amministrative di Lizmap e Filebrowser ricevute da Faunalia il 2/11/2026 (fuori dal repository)
 - [x] Firewall: `scripts/firewall-dhgeo.sh` e `systemd/firewall-dhgeo.service`, prove passate anche su dhgeo (iptables 1.6.1, in un namespace); Docker dipende dall'unità
+- [x] Firewall installato su dhgeo (unità attiva e abilitata) e porte sull'IP della VM; `.env` precedenti in `~/env-backup/`. Da dhwp le porte rispondono (200, `/ping` online), dalla VPN vanno in timeout; smoke test tutto OK
+- [x] PR #25 di `proxy.dh.unica` unita (f9238e0), deploy automatico e `nginx -t` OK. Da Internet: HTTPS valido (`*.dh.unica.it`, scade l'11/02/2027), redirect da HTTP, home e `/files/` a 200, nessun URL `http://` assoluto nella home
 
 ## Da fare
 
-- [ ] Verifica via tunnel SSH con un account amministratore: pagina «Informazioni server», mappa PARC WebGis, Filebrowser; poi reset delle password
-- [ ] Su dhgeo `sudo scripts/firewall-dhgeo.sh installa` (serve la password di sudo), poi porte sull'IP di dhgeo e verifica da dhwp (docs/MIGRAZIONE.md, fase F)
-- [ ] Merge della PR #25 di `proxy.dh.unica` (virtual host), solo dopo la verifica da dhwp
+- [ ] Login con un account amministratore su https://lizmap.dh.unica.it: pagina «Informazioni server», mappa PARC WebGis senza contenuti misti, Filebrowser con upload di prova; poi reset delle password
 - [ ] Verifiche di accettazione con Antonio M. Corda
 - [ ] Backup giornaliero in cron e copia fuori dalla VM
-- [ ] Tag `prod-<data>` sul primo rilascio
 - [ ] Avvisare Faunalia che può spegnere il vecchio server (acceso fino a inizio dicembre 2026), dopo le verifiche di accettazione
 
 ## Dopo la messa in servizio
